@@ -12,6 +12,7 @@ class Kennel:
     self.api_key: is the os environment stored API Key
     self.app_key: is the os environment stored APP Key
     '''
+
     def __init__(self, cnffile):
         self.cnffile = cnffile
         # Globalize Dictionary of choices
@@ -35,6 +36,7 @@ class Kennel:
     Name: readconf
     example: reads config/get_dashboard.conf file and extracts all key and values for the function getdashboard(self)
     '''
+
     def readconf(self):
         delim = "="
         conf = {}
@@ -51,14 +53,15 @@ class Kennel:
     KennelApi defined functions to call DataDog API endpoints
     In this section the user must create the body of the endpoint call and make references to the readconf keys, values
     '''
+
     def allhosts(self):
         cnf = self.readconf()
         title = cnf['kennel.host.all.title']
         cmd = api.Hosts.search()
-        return (title, ": ",cmd)
+        return (title, ": ", cmd)
 
     def createdashboard(self):
-        cnf = self.readconf()  #
+        cnf = self.readconf()
         title = cnf['kennel.create.dashboard.title']
         widgets = [{
             'definition': {
@@ -71,33 +74,40 @@ class Kennel:
         }]
         layout_type = cnf['kennel.create.dashboard.layout.type']
         description = cnf['kennel.create.dashboard.description']
-        is_read_only = cnf['kennel.create.dashboard.read.only']
-        notify_list = cnf['kennel.create.dashboard.notify.list']
+        isreadonly = cnf['kennel.create.dashboard.read.only']
+
+        is_read_only = eval(isreadonly)
+
+        notify_list = [cnf['kennel.create.dashboard.notify.list']]
         template_variables = [{
             'name': cnf['kennel.create.dashboard.template.var.name'],
             'prefix': cnf['kennel.create.dashboard.template.var.prefix'],
             'default': cnf['kennel.create.dashboard.template.var.default']
         }]
 
+        tv = eval(cnf['kennel.create.dashboard.saved.view.template.variables'])
+
         saved_views = [{
             'name': cnf['kennel.create.dashboard.saved.view.name'],
-            'template_variables': cnf['kennel.create.dashboard.saved.view.template.variables']
+            'template_variables': [tv]
         }]
 
         cmd = api.Dashboard.create(title=title,
-                             widgets=widgets,
-                             layout_type=layout_type,
-                             description=description,
-                             is_read_only=is_read_only,
-                             notify_list=notify_list,
-                             template_variables=template_variables,
-                             template_variable_presets=saved_views)
+                                   widgets=widgets,
+                                   layout_type=layout_type,
+                                   description=description,
+                                   is_read_only=is_read_only,
+                                   notify_list=notify_list,
+                                   template_variables=template_variables,
+                                   template_variable_presets=saved_views)
+        print(cmd)
 
         return cmd
 
     '''
     Dynamically executes the endpoint based on the user cli input
     '''
+
     def execapi(self, argument):
         fun = self.commands[argument]()
         return fun
